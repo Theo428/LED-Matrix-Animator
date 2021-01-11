@@ -57,6 +57,7 @@ public class Game extends Canvas
 				timer += 1000;
 				System.out.println("FPS: " + frames);
 				frames = 0;
+
 			}
 
 		}
