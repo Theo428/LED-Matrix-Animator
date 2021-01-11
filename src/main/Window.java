@@ -7,11 +7,11 @@ import javax.swing.JFrame;
 
 public class Window extends Canvas
 {
-	public static final int MAX_WIDTH = 1080;
+	public static final int MAX_WIDTH = 1920;
 	public static final int MAX_HEIGHT = 1080;
 
-	public static final int MIN_WIDTH = 1080;
-	public static final int MIN_HEIGHT = 1080;
+	public static final int MIN_WIDTH = 1280;
+	public static final int MIN_HEIGHT = 720;
 	
 	public Window(int width, int height, String title, Game game)
 	{
