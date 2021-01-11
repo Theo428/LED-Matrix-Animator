@@ -6,6 +6,7 @@ import main.PixelColor;
 import main.entities.GameObject;
 
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ColorCalculator extends GameObject {
@@ -15,11 +16,24 @@ public class ColorCalculator extends GameObject {
 
     private PixelColor[][] Matrix = new PixelColor[width][height];
 
+    private char mode = 'R';
+
     //Fade Pixel Variables
     private ArrayList<FadeData> fadingData = new ArrayList<FadeData>();
 
     //Random Color Variables
     private long lastRandomTime = 0;
+    private double randomRate = 1;
+    private double fadeTime = 0;
+
+    //Line Animation Variables
+    private double lineSlope = 0;
+    private double lineSpacing = 1.5;
+    private double lineSpeed = 0.2;
+    private ArrayList<PixelColor> lineColors = new ArrayList<PixelColor>();
+    private boolean fadeLeadingEdge = true;
+    private boolean fadeTrailingEdge = true;
+    private double lineDistance = 0;
 
     public ColorCalculator(Handler handler, int width, int height)
     {
@@ -32,6 +46,8 @@ public class ColorCalculator extends GameObject {
         initMatrix();
 
     }
+
+    public void setMode(char mode) { this.mode = mode; }
 
     public void setWidth(int width)
     {
@@ -65,20 +81,12 @@ public class ColorCalculator extends GameObject {
     @Override
     public void tick()
     {
-
-    }
-
-    public void tick(String mode)
-    {
-        char modeType = mode.charAt(0);
-        String[] modeData = mode.substring(1).split(",");
-
-        switch(modeType)
+        switch(mode)
         {
+            case 'L':
+                break;
             case 'R':
-                double Rate = Double.parseDouble(modeData[0]);
-                double FadeTime = Double.parseDouble(modeData[1]);
-                CalculateRandomColors(Rate,FadeTime);
+                CalculateRandomColors();
                 CalculateFade();
                 break;
         }
@@ -87,12 +95,19 @@ public class ColorCalculator extends GameObject {
     @Override
     public void render(Graphics graphics)
     {
-
+        switch(mode)
+        {
+            case 'L':
+                renderLines(graphics);
+                break;
+            case 'R':
+                break;
+        }
     }
 
     //Modes
     //Random Colors
-    private void CalculateRandomColors(double randomRate, double fadeTime)
+    private void CalculateRandomColors()
     {
         if((System.nanoTime()-lastRandomTime)/1000000000.0 >= 1/randomRate)
         {
@@ -111,9 +126,39 @@ public class ColorCalculator extends GameObject {
         }
     }
 
+    public void setRandomRate(double randomRate) { this.randomRate = randomRate; }
+    public void setFadTime(double fadeTime) { this.fadeTime = fadeTime; }
+
+    //Line Animation
+    private void CalculateLineAnimation()
+    {
+
+    }
+
+    private void renderLines(Graphics graphics)
+    {
+        double drawDistance = lineDistance;
+
+        while(lineDistance >= 0)
+        {
 
 
+            int x1 = 0;
+            int y1 = 0;
+            int x2 = 0;
+            int y2 = 0;
 
+            graphics.drawLine(0,0,0,0);
+        }
+    }
+
+    public void setFadeLeadingEdge(boolean fadeLeadingEdge) { this.fadeLeadingEdge = fadeLeadingEdge; }
+    public void setFadeTrailingEdge(boolean fadeTrailingEdge) { this.fadeTrailingEdge = fadeTrailingEdge; }
+    public void setLineSlope(double lineSlope) { this.lineSlope = lineSlope; }
+    public void setLineSpacing(double lineSpacing) { this.lineSpacing = lineSpacing; }
+    public void setLineSpeed(double lineSpeed) { this.lineSpeed = lineSpeed; }
+    public void addLineColor(PixelColor color) { lineColors.add(color); }
+    public void removeLineColor(int index) { lineColors.remove(index); }
 
     //Calculation Utilities
     private void CalculateFade()

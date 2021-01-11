@@ -20,7 +20,9 @@ public class Handler
 	
 	public void tick()
 	{
-		colorCalculator.tick("R10,1");
+		colorCalculator.setMode('L');
+
+		colorCalculator.tick();
 		matrix.tick(colorCalculator.GetMatirxColors());
 	}
 	

@@ -13,6 +13,7 @@ public class Matrix extends GameObject
     private PixelColor[][] Matrix = new PixelColor[width][height];
 
     private int MaxHeight = Game.HEIGHT;
+    private int squareWidth = 0;
 
     public Matrix(Handler handler, double x, double y, int width, int height)
     {
@@ -23,6 +24,8 @@ public class Matrix extends GameObject
 
         Matrix = new PixelColor[width][height];
 
+        this.squareWidth = (int)((MaxHeight-32)/width);
+
         initMatrix();
     }
 
@@ -30,13 +33,23 @@ public class Matrix extends GameObject
     {
         this.width = width;
         Matrix = new PixelColor[width][height];
+
+        this.squareWidth = (int)((MaxHeight-32)/width);
+
+        initMatrix();
     }
 
     public void setHeight(int height)
     {
         this.height = height;
         Matrix = new PixelColor[width][height];
+
+        this.squareWidth = (int)((MaxHeight-32)/width);
+
+        initMatrix();
     }
+
+    public int getSquareWidth() { return squareWidth; }
 
     @Override
     public void tick()
@@ -52,7 +65,7 @@ public class Matrix extends GameObject
     @Override
     public void render(Graphics graphics)
     {
-        int squareWidth = (int)((MaxHeight-32)/width);
+
         for(int x = 0; x < Matrix.length; x++)
         {
             for(int y = 0; y < Matrix[x].length; y++)
