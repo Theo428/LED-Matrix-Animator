@@ -19,6 +19,13 @@ public class PixelColor {
         this.blueValue = blueValue;
     }
 
+    public PixelColor (double[] colorValues)
+    {
+        this.redValue = (int)colorValues[0];
+        this.greenValue = (int)colorValues[1];
+        this.blueValue = (int)colorValues[2];
+    }
+
     public void setRedValue(int redValue) { this.redValue = redValue; }
     public void setGreenValue(int greenValue) { this.greenValue = greenValue; }
     public void setBlueValue(int blueValue) { this.blueValue = blueValue; }
@@ -32,5 +39,10 @@ public class PixelColor {
     public String toString()
     {
         return "r=" + redValue + "g=" + greenValue + "b=" + blueValue;
+    }
+
+    public String toArduinoString()
+    {
+        return redValue + "." + greenValue + "." + blueValue;
     }
 }

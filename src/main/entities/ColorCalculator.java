@@ -18,22 +18,29 @@ public class ColorCalculator extends GameObject {
 
     private char mode = 'R';
 
+    private int matrixSquareWidth = 0;
+
+    private long lastTickNanoTime = 0;
+
     //Fade Pixel Variables
     private ArrayList<FadeData> fadingData = new ArrayList<FadeData>();
 
     //Random Color Variables
     private long lastRandomTime = 0;
-    private double randomRate = 1;
-    private double fadeTime = 0;
+    private double randomRate = 10;
+    private double fadeTime = 1;
 
     //Line Animation Variables
-    private double lineSlope = 0;
-    private double lineSpacing = 1.5;
-    private double lineSpeed = 0.2;
+    private double lineAngle = 0;
+    private double lineSpacing = 5;
+    private double lineFadeDistance = 5;
+    private double lineSpeed = 2;
     private ArrayList<PixelColor> lineColors = new ArrayList<PixelColor>();
     private boolean fadeLeadingEdge = true;
     private boolean fadeTrailingEdge = true;
     private double lineDistance = 0;
+
+    private int matrixMajorDimension = width;
 
     public ColorCalculator(Handler handler, int width, int height)
     {
@@ -45,6 +52,16 @@ public class ColorCalculator extends GameObject {
 
         initMatrix();
 
+        if(width > height)
+        {
+            matrixMajorDimension = width;
+        }
+        else
+        {
+            matrixMajorDimension = height;
+        }
+
+        lastTickNanoTime = System.nanoTime();
     }
 
     public void setMode(char mode) { this.mode = mode; }
@@ -53,18 +70,42 @@ public class ColorCalculator extends GameObject {
     {
         this.width = width;
         Matrix = new PixelColor[width][height];
+
+        initMatrix();
+
+        if(width > height)
+        {
+            matrixMajorDimension = width;
+        }
+        else
+        {
+            matrixMajorDimension = height;
+        }
     }
 
     public void setHeight(int height)
     {
         this.height = height;
         Matrix = new PixelColor[width][height];
+
+        initMatrix();
+
+        if(width > height)
+        {
+            matrixMajorDimension = width;
+        }
+        else
+        {
+            matrixMajorDimension = height;
+        }
     }
 
-    public PixelColor[][] GetMatirxColors()
+    public PixelColor[][] GetMatrixColors()
     {
         return Matrix;
     }
+
+    public void setMatrixSquareWidth(int matrixSquareWidth) { this.matrixSquareWidth = matrixSquareWidth; }
 
     public void initMatrix()
     {
@@ -84,12 +125,15 @@ public class ColorCalculator extends GameObject {
         switch(mode)
         {
             case 'L':
+                CalculateLineAnimation();
                 break;
             case 'R':
                 CalculateRandomColors();
                 CalculateFade();
                 break;
         }
+
+        lastTickNanoTime = System.nanoTime();
     }
 
     @Override
@@ -132,6 +176,58 @@ public class ColorCalculator extends GameObject {
     //Line Animation
     private void CalculateLineAnimation()
     {
+        double lineXSlope = Math.cos(Math.toRadians(lineAngle));
+        double lineYSlope = Math.sin(Math.toRadians(lineAngle));
+
+        for(int x = 0; x < Matrix.length; x++)
+        {
+            for(int y = 0; y < Matrix[x].length; y++)
+            {
+                int redValue = 0;
+                int greenValue = 0;
+                int blueValue = 0;
+
+                double currentLineDistance = lineDistance;
+                for(int i = 0; currentLineDistance >= -(lineSpacing * 2 * matrixMajorDimension); i++)
+                {
+                    PixelColor lineColor = lineColors.get(i % lineColors.size());
+
+                    double distanceToLine = ((lineXSlope*(x + .5)) + (lineYSlope*(y + .5)) - currentLineDistance)/(Math.sqrt(Math.pow(lineXSlope, 2) + Math.pow(lineYSlope, 2)));
+
+
+                    if(Math.abs(distanceToLine) <= lineFadeDistance)
+                    {
+                        if((fadeLeadingEdge && distanceToLine >= 0) || (fadeTrailingEdge && distanceToLine <= 0)) {
+                            double fadePercentage = 1 - Math.abs(distanceToLine / lineFadeDistance);
+
+                            redValue += (lineColor.getRedValue() * fadePercentage);
+                            greenValue += (lineColor.getGreenValue() * fadePercentage);
+                            blueValue += (lineColor.getBlueValue() * fadePercentage);
+                        }
+                        else if(!fadeLeadingEdge && !fadeTrailingEdge)
+                        {
+                            redValue += lineColor.getRedValue();
+                            greenValue += lineColor.getGreenValue();
+                            blueValue += lineColor.getBlueValue();
+                        }
+                    }
+                    currentLineDistance -= lineSpacing;
+                }
+
+                Matrix[x][y] = new PixelColor(normalizeValues(new double[]{redValue, greenValue, blueValue}, 255));
+
+            }
+        }
+
+        double lastTickSeconds = (System.nanoTime()-lastTickNanoTime)/1000000000.0;
+
+        lineDistance += lastTickSeconds * lineSpeed;
+
+        if(lineDistance >= ((lineSpacing * 3 * matrixMajorDimension) + lineSpacing * lineColors.size()))
+        {
+            lineDistance -= lineSpacing * lineColors.size();
+            System.out.println("reset");
+        }
 
     }
 
@@ -139,22 +235,47 @@ public class ColorCalculator extends GameObject {
     {
         double drawDistance = lineDistance;
 
-        while(lineDistance >= 0)
+        int lineNumber = 0;
+        while(drawDistance >= -(lineSpacing * 2 * matrixMajorDimension))
         {
+            double lineXSlope = Math.cos(Math.toRadians(lineAngle));
+            double lineYSlope = Math.sin(Math.toRadians(lineAngle));
+            double[][] intersections = new double[4][2];
 
+            intersections[0] = calculateIntersection(lineXSlope, lineYSlope, -drawDistance, 1, 0, 0);
+            intersections[1] = calculateIntersection(lineXSlope, lineYSlope, -drawDistance, 1, 0, -width);
+            intersections[2] = calculateIntersection(lineXSlope, lineYSlope, -drawDistance, 0, 1, 0);
+            intersections[3] = calculateIntersection(lineXSlope, lineYSlope, -drawDistance, 0, 1, -height);
 
-            int x1 = 0;
-            int y1 = 0;
-            int x2 = 0;
-            int y2 = 0;
+            ArrayList<double[]> finalIntersections = new ArrayList<double[]>();
 
-            graphics.drawLine(0,0,0,0);
+            for(int i = 0; i < intersections.length; i++)
+            {
+                if(intersections[i] != null && isInsideMatrix(intersections[i]))
+                {
+                    finalIntersections.add(intersections[i]);
+                }
+            }
+
+            if(finalIntersections.size() >= 2)
+            {
+                int matrixDrawHeight = matrixSquareWidth * height;
+
+                Graphics2D graphics2D = (Graphics2D)graphics;
+
+                graphics2D.setColor(lineColors.get(lineNumber % lineColors.size()).getColor());
+                graphics2D.setStroke(new BasicStroke(3));
+                graphics2D.drawLine((int)(getX()+(finalIntersections.get(0)[0] * matrixSquareWidth)), (int)(getY()+ (matrixDrawHeight - (finalIntersections.get(0)[1] * matrixSquareWidth))), (int)(getX()+(finalIntersections.get(1)[0] * matrixSquareWidth)), (int)(getY() + (matrixDrawHeight - (finalIntersections.get(1)[1] * matrixSquareWidth))));
+            }
+
+            drawDistance -= lineSpacing;
+            lineNumber++;
         }
     }
 
     public void setFadeLeadingEdge(boolean fadeLeadingEdge) { this.fadeLeadingEdge = fadeLeadingEdge; }
     public void setFadeTrailingEdge(boolean fadeTrailingEdge) { this.fadeTrailingEdge = fadeTrailingEdge; }
-    public void setLineSlope(double lineSlope) { this.lineSlope = lineSlope; }
+    public void setLineAngle(double lineAngle) { this.lineAngle = lineAngle; }
     public void setLineSpacing(double lineSpacing) { this.lineSpacing = lineSpacing; }
     public void setLineSpeed(double lineSpeed) { this.lineSpeed = lineSpeed; }
     public void addLineColor(PixelColor color) { lineColors.add(color); }
@@ -182,5 +303,45 @@ public class ColorCalculator extends GameObject {
                 Matrix[fadingData.get(i).getX()][fadingData.get(i).getY()] = new PixelColor(redValue, greenValue, blueValue);
             }
         }
+    }
+
+    private double[] calculateIntersection(double a1, double b1, double c1, double a2, double b2, double c2)
+    {
+        double bottom = (a1*b2) - (a2*b1);
+
+        double xTop = (b1*c2) - (b2*c1);
+        double yTop = (a2*c1) - (a1*c2);
+
+        if(bottom == 0)
+            return null;
+        else
+            return new double[]{xTop / bottom, yTop / bottom};
+    }
+
+    private boolean isInsideMatrix(double[] point)
+    {
+        boolean horizontal = (point[0] >= 0) && (point[0] <= width);
+        boolean vertical = (point[1] >= 0) && (point[1] <= height);
+        return horizontal && vertical;
+    }
+
+    private double[] normalizeValues(double[] values, double limit)
+    {
+        double maxValue = 0;
+
+        for(int i = 0; i < values.length; i++)
+        {
+            if(values[i] > maxValue)
+                maxValue = values[i];
+        }
+
+        if(maxValue > limit)
+        {
+            for (int i = 0; i < values.length; i++)
+            {
+                values[i] = (values[i]/maxValue) * limit;
+            }
+        }
+        return values;
     }
 }

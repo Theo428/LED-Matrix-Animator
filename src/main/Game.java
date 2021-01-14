@@ -31,7 +31,7 @@ public class Game extends Canvas
 	public void run()
 	{
 		long lastTime = System.nanoTime();
-		double TickPerSecond = 60;
+		double TickPerSecond = 15;
 		double NanosecondPerTick = 1000000000 / TickPerSecond;
 		double delta = 0;
 		long timer = System.currentTimeMillis();
