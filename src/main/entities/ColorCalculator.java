@@ -35,7 +35,7 @@ public class ColorCalculator extends GameObject {
     private double lineSpacing = 5;
     private double lineFadeDistance = 5;
     private double lineSpeed = 2;
-    private ArrayList<PixelColor> lineColors = new ArrayList<PixelColor>();
+    private ArrayList<PixelColor> paletteColors = new ArrayList<PixelColor>();
     private boolean fadeLeadingEdge = true;
     private boolean fadeTrailingEdge = true;
     private double lineDistance = 0;
@@ -118,6 +118,10 @@ public class ColorCalculator extends GameObject {
         }
     }
 
+    public void addPaletteColor(PixelColor color) { paletteColors.add(color); }
+    public void removePaletteColor(int index) { paletteColors.remove(index); }
+    public void clearPaletteColors() { paletteColors = new ArrayList<PixelColor>(); }
+
 
     @Override
     public void tick()
@@ -160,7 +164,16 @@ public class ColorCalculator extends GameObject {
 
             if(Matrix[x][y].getRedValue() == 0 && Matrix[x][y].getGreenValue() == 0 && Matrix[x][y].getBlueValue() == 0)
             {
-                PixelColor color = new PixelColor((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255));
+                PixelColor color;
+
+                if(paletteColors.size() != 0)
+                {
+                    color = paletteColors.get((int)(Math.random() * paletteColors.size()));
+                }
+                else
+                {
+                     color = new PixelColor((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255));
+                }
 
                 Matrix[x][y] = color;
 
@@ -190,7 +203,7 @@ public class ColorCalculator extends GameObject {
                 double currentLineDistance = lineDistance;
                 for(int i = 0; currentLineDistance >= -(lineSpacing * 2 * matrixMajorDimension); i++)
                 {
-                    PixelColor lineColor = lineColors.get(i % lineColors.size());
+                    PixelColor lineColor = paletteColors.get(i % paletteColors.size());
 
                     double distanceToLine = ((lineXSlope*(x + .5)) + (lineYSlope*(y + .5)) - currentLineDistance)/(Math.sqrt(Math.pow(lineXSlope, 2) + Math.pow(lineYSlope, 2)));
 
@@ -223,9 +236,9 @@ public class ColorCalculator extends GameObject {
 
         lineDistance += lastTickSeconds * lineSpeed;
 
-        if(lineDistance >= ((lineSpacing * 3 * matrixMajorDimension) + lineSpacing * lineColors.size()))
+        if(lineDistance >= ((lineSpacing * 3 * matrixMajorDimension) + lineSpacing * paletteColors.size()))
         {
-            lineDistance -= lineSpacing * lineColors.size();
+            lineDistance -= lineSpacing * paletteColors.size();
             System.out.println("reset");
         }
 
@@ -263,7 +276,7 @@ public class ColorCalculator extends GameObject {
 
                 Graphics2D graphics2D = (Graphics2D)graphics;
 
-                graphics2D.setColor(lineColors.get(lineNumber % lineColors.size()).getColor());
+                graphics2D.setColor(paletteColors.get(lineNumber % paletteColors.size()).getColor());
                 graphics2D.setStroke(new BasicStroke(3));
                 graphics2D.drawLine((int)(getX()+(finalIntersections.get(0)[0] * matrixSquareWidth)), (int)(getY()+ (matrixDrawHeight - (finalIntersections.get(0)[1] * matrixSquareWidth))), (int)(getX()+(finalIntersections.get(1)[0] * matrixSquareWidth)), (int)(getY() + (matrixDrawHeight - (finalIntersections.get(1)[1] * matrixSquareWidth))));
             }
@@ -278,8 +291,6 @@ public class ColorCalculator extends GameObject {
     public void setLineAngle(double lineAngle) { this.lineAngle = lineAngle; }
     public void setLineSpacing(double lineSpacing) { this.lineSpacing = lineSpacing; }
     public void setLineSpeed(double lineSpeed) { this.lineSpeed = lineSpeed; }
-    public void addLineColor(PixelColor color) { lineColors.add(color); }
-    public void removeLineColor(int index) { lineColors.remove(index); }
 
     //Calculation Utilities
     private void CalculateFade()

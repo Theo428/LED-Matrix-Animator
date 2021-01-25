@@ -14,27 +14,33 @@ public class SerialManager extends  GameObject {
         super(handler, x, y);
         SerialPort[] ports = SerialPort.getCommPorts();
 
-//        for(int i = 0; i < ports.length; i++)
-//        {
-//            System.out.println(ports[i].getDescriptivePortName());
-//        }
-
-        arduino = SerialPort.getCommPorts()[0];
-        arduino.setComPortParameters(115200, 8, 1, 0);
-        arduino.openPort();
-        arduino.getDescriptivePortName();
-
-        while (arduino.bytesAvailable() == 0) {
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        for(int i = 0; i < ports.length; i++)
+        {
+            System.out.println(ports[i].getDescriptivePortName());
         }
 
-        byte[] readBuffer = new byte[arduino.bytesAvailable()];
-        int numRead = arduino.readBytes(readBuffer, readBuffer.length);
-        System.out.println("Read " + numRead + " bytes." + (new String(readBuffer)));
+        try {
+            arduino = SerialPort.getCommPorts()[0];
+            arduino.setComPortParameters(2000000, 8, 1, 0);
+            arduino.openPort();
+
+            while (arduino.bytesAvailable() == 0) {
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            byte[] readBuffer = new byte[arduino.bytesAvailable()];
+            int numRead = arduino.readBytes(readBuffer, readBuffer.length);
+            System.out.println("Read " + numRead + " bytes." + (new String(readBuffer)));
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
+
     }
 
     private SerialPort[] getSerialPorts() { return SerialPort.getCommPorts(); }
@@ -64,7 +70,7 @@ public class SerialManager extends  GameObject {
 
 //        while (arduino.bytesAvailable() == 0) {
 //            try {
-//                Thread.sleep(20);
+//                Thread.sleep(5);
 //            } catch (InterruptedException e) {
 //                e.printStackTrace();
 //            }
@@ -73,6 +79,8 @@ public class SerialManager extends  GameObject {
 //        byte[] readBuffer = new byte[arduino.bytesAvailable()];
 //        int numRead = arduino.readBytes(readBuffer, readBuffer.length);
 //        System.out.println("Read " + numRead + " bytes." + (new String(readBuffer)));
+
+
     }
 
     @Override

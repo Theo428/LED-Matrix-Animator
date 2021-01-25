@@ -15,15 +15,13 @@ public class Handler
 	
 	public Handler()
 	{
-		matrix = new Matrix(this, 0, 0, 2, 8);
+		matrix = new Matrix(this, 0, 0, 8, 3);
 		colorCalculator = new ColorCalculator(this, matrix.getWidth(), matrix.getHeight());
 		serialManager = new SerialManager(this, 0, 0);
 
-		colorCalculator.addLineColor(new PixelColor(255, 0, 0));
-		colorCalculator.addLineColor(new PixelColor(0, 255, 0));
-		colorCalculator.addLineColor(new PixelColor(0, 0, 255));
-
-
+		colorCalculator.addPaletteColor(new PixelColor(255, 0, 0));
+		colorCalculator.addPaletteColor(new PixelColor(0, 255, 0));
+		colorCalculator.addPaletteColor(new PixelColor(0, 0, 255));
 	}
 	
 	public void tick()
@@ -33,7 +31,7 @@ public class Handler
 		matrix.setY(0.04 * Game.HEIGHT);
 		matrix.setMaxDrawHeight((int)(0.87*Game.HEIGHT));
 
-		colorCalculator.setMode('R');
+		colorCalculator.setMode('L');
 		colorCalculator.setMatrixSquareWidth(matrix.getSquareWidth());
 		colorCalculator.setX(matrix.getX());
 		colorCalculator.setY(matrix.getY());
